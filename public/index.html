@@ -40,6 +40,7 @@ function salvarHistoricoComGeolocalizacao(message, cidade, estado, pais, userId)
 }
 
 // Função para obter a localização do usuário usando a API de Geolocalização
+// Função para obter a localização do usuário usando a API de Geolocalização
 function obterLocalizacao(message, userId) {
     if (navigator.geolocation) {
         navigator.geolocation.getCurrentPosition(async function (position) {
@@ -51,19 +52,24 @@ function obterLocalizacao(message, userId) {
 
             try {
                 const response = await axios.get(geocodeUrl);
-                const addressComponents = response.data.results[0].address_components;
 
-                let cidade = '', estado = '', pais = '';
-                addressComponents.forEach(component => {
-                    if (component.types.includes('locality')) cidade = component.long_name;
-                    if (component.types.includes('administrative_area_level_1')) estado = component.long_name;
-                    if (component.types.includes('country')) pais = component.long_name;
-                });
+                if (response.data && response.data.results && response.data.results.length > 0) {
+                    const addressComponents = response.data.results[0].address_components;
 
-                console.log(`Cidade: ${cidade}, Estado: ${estado}, País: ${pais}`);
+                    let cidade = '', estado = '', pais = '';
+                    addressComponents.forEach(component => {
+                        if (component.types.includes('locality')) cidade = component.long_name;
+                        if (component.types.includes('administrative_area_level_1')) estado = component.long_name;
+                        if (component.types.includes('country')) pais = component.long_name;
+                    });
 
-                // Salvar o histórico com a mensagem, IP e localização
-                salvarHistoricoComGeolocalizacao(message, cidade, estado, pais, userId);
+                    console.log(`Cidade: ${cidade}, Estado: ${estado}, País: ${pais}`);
+
+                    // Salvar o histórico com a mensagem, IP e localização
+                    salvarHistoricoComGeolocalizacao(message, cidade, estado, pais, userId);
+                } else {
+                    console.error('Nenhum resultado encontrado para a geolocalização.');
+                }
 
             } catch (error) {
                 console.error('Erro ao obter a geolocalização:', error);
@@ -73,6 +79,7 @@ function obterLocalizacao(message, userId) {
         console.error('Geolocalização não suportada pelo navegador.');
     }
 }
+
 
 // Função para enviar a mensagem e obter a resposta do AI
 document.getElementById('sendMessage').addEventListener('click', async function () {
