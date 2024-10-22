@@ -18,6 +18,7 @@
             <input type="text" id="userInput" placeholder="Digite sua pergunta..." />
             <button id="sendMessage">Enviar</button>
         </div>
+        <p>Autora: Clara Camily Joner Heck</p>
     </div>
 
     <script>
@@ -132,17 +133,18 @@ document.getElementById('sendMessage').addEventListener('click', async function 
 
     </script>
     <style>
-       body {
+       
+        body {
     font-family: 'Verdana', sans-serif;
-    background-color: #f9f9f9; /* Cor de fundo suave */
-    color: #4d4d4d; /* Cor de texto escura */
+    background-color: #fefefe; /* Cor de fundo mais suave */
+    color: #333; /* Cor de texto escura */
     margin: 0;
     padding: 20px;
 }
 
 h1 {
-    color: #d35400; /* Laranja queimado */
-    background-color: #f39c12; /* Laranja claro */
+    color: #e67e22; /* Laranja suave */
+    background-color: #f5cba0; /* Laranja muito claro */
     width: 100%;
     height: 80px; /* Aumentado para mais destaque */
     margin: 0px;
@@ -154,7 +156,7 @@ h1 {
 #userInput {
     width: 70%; /* Ajuste na largura */
     height: 35px; /* Aumentado para melhor usabilidade */
-    border: 2px solid #e67e22; /* Bordas em tom laranja */
+    border: 2px solid #d5b596; /* Bordas em tom de bege */
     border-radius: 5px; /* Bordas arredondadas */
     padding: 5px; /* Espaçamento interno */
 }
@@ -170,29 +172,30 @@ h1 {
     display: grid;
 }
 
-#outputArea1, #outputArea2 {
+#outputArea1 {
     margin-top: 20px;
     padding: 10px; /* Espaçamento interno */
     border: 1px solid #ddd; /* Borda leve */
     border-radius: 8px; /* Bordas arredondadas */
     width: 700px;
-    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1); /* Sombra suave */
-}
-
-#outputArea1 {
-    background-color: #d1e7dd; /* Verde claro */
+    background-color: #d4edda; /* Verde claro e suave */
     text-align: left; /* Alinhamento à esquerda */
 }
 
 #outputArea2 {
-    background-color: #f8d7da; /* Rosa claro */
+    margin-top: 20px;
+    padding: 10px; /* Espaçamento interno */
+    border: 1px solid #ddd; /* Borda leve */
+    border-radius: 8px; /* Bordas arredondadas */
+    width: 700px;
+    background-color: #8ea5c2; /* Rosa claro e suave */
     text-align: right; /* Alinhamento à direita */
 }
 
 #sendMessage {
     margin-top: 10px;
     padding: 10px 20px;
-    background-color: #e67e22; /* Cor de fundo do botão */
+    background-color: #d5b596; /* Cor de fundo do botão */
     color: white;
     border: none;
     border-radius: 5px; /* Bordas arredondadas */
@@ -202,7 +205,7 @@ h1 {
 }
 
 #sendMessage:hover {
-    background-color: #d35400; /* Cor ao passar o mouse */
+    background-color: #b89f7a; /* Cor ao passar o mouse */
 }
 
     </style>
