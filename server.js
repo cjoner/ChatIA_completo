@@ -40,6 +40,11 @@ mongoose.connect('mongodb+srv://clarachjoner2007:alex156600@chat-chef-ia.ficqopw
 const historicoSchema = new mongoose.Schema({
     userId: String,
     message: String,
+    localizacao: {
+        cidade: String,
+        estado: String,
+        pais: String
+    },
     timestamp: { type: Date, default: Date.now }
 });
 
