@@ -48,7 +48,7 @@ function obterLocalizacao(message, userId) {
             const long = position.coords.longitude;
 
             // Usar a API de Geocodificação para converter as coordenadas em cidade, estado e país
-            const geocodeUrl = `https://maps.googleapis.com/maps/api/geocode/json?latlng=${lat},${long}&key=YOUR_GOOGLE_MAPS_API_KEY`;
+            const geocodeUrl = `https://maps.googleapis.com/maps/api/geocode/json?latlng=-23.55052,-46.633308&key=AIzaSyAvNxoELmVm8MI2e7hMHyXc0UfQ6ym1uPs`;
 
             try {
                 const response = await axios.get(geocodeUrl);
