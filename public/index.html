@@ -42,13 +42,16 @@ function salvarHistoricoComGeolocalizacao(message, cidade, estado, pais, userId)
 // Função para obter a localização do usuário usando a API de Geolocalização
 // Função para obter a localização do usuário usando a API de Geolocalização
 function obterLocalizacao(message, userId) {
-    if (navigator.geolocation) {
+            if (navigator.geolocation) {
         navigator.geolocation.getCurrentPosition(async function (position) {
             const lat = position.coords.latitude;
             const long = position.coords.longitude;
+            const apiKey = 'SUA_CHAVE_DE_API_AQUI'; // Substitua pela sua chave de API do Google
+
+            const geocodeUrl = `https://maps.googleapis.com/maps/api/geocode/json?latlng=${lat},${long}&key=AIzaSyAYy3ZHrR2HPNU6UPn1QZRcvN8tjgmnbfE`;
 
             // Usar a API de Geocodificação para converter as coordenadas em cidade, estado e país
-            const geocodeUrl = `https://maps.googleapis.com/maps/api/geocode/json?latlng=-23.55052,-46.633308&key=AIzaSyAvNxoELmVm8MI2e7hMHyXc0UfQ6ym1uPs`;
+            
 
             try {
                 const response = await axios.get(geocodeUrl);
