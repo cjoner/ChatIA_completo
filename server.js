@@ -54,40 +54,35 @@ const logSchema = new mongoose.Schema({
 
 const Log = mongoose.model('Log', logSchema);
 
-// Endpoint para registrar o histórico e o IP público
+// Endpoint para registrar o histórico e o IP público, agora com cidade, estado e país
 app.post('/api/db_chatChef_historico', async (req, res) => {
-    const { message } = req.body; // Agora não pegamos o userId do corpo da requisição
+    const { message, cidade, estado, pais } = req.body; // Receber mais informações do cliente
 
     try {
         // Obter o IP público usando a API do Ipfy
-        const response = await axios.get('https://api.ipify.org?format=json');
-        const userIp = response.data.ip; // IP público da máquina
+        const response = await axios.get('https://api.ipify.org?format=json'); // Requisição para obter o IP
+        const userIp = response.data.ip; // Extrair o IP da resposta
 
         // Verificar se o IP foi corretamente capturado
-        console.log('Captured User Public IP:', userIp);
+        console.log('IP público capturado:', userIp);
 
-        // Salvar o histórico de mensagens com o IP no campo userId
-        const novoHistorico = new Historico({ userId: userIp, message });
+        // Criar um novo documento de histórico com todas as informações
+        const novoHistorico = new Historico({
+            userId: userIp,
+            message,
+            localizacao: { cidade, estado, pais } // Adicionando cidade, estado e país ao registro
+        });
 
-        // Verificando o objeto antes de salvar no banco de dados
-        console.log('Saving new history record:', novoHistorico);
-
+        // Salvar no banco de dados MongoDB
         await novoHistorico.save();
 
-        // Salvar o log de IP e data
-        const novoLog = new Log({ userId: userIp, ip: userIp });
-
-        // Verificando o log antes de salvar
-        console.log('Saving new log record:', novoLog);
-
-        await novoLog.save();
-
-        res.status(201).send('Histórico e log salvos com sucesso');
+        res.status(201).send('Histórico com geolocalização salvo com sucesso');
     } catch (error) {
-        console.error('Erro ao salvar histórico e log:', error);
-        res.status(500).send('Erro ao salvar histórico e log');
+        console.error('Erro ao salvar histórico:', error);
+        res.status(500).send('Erro ao salvar histórico');
     }
 });
+
 
 //--------------------CHAT IA---------------------//
 

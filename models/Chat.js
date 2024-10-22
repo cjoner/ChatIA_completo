@@ -2,19 +2,16 @@ const mongoose = require('mongoose');
 
 // Definindo o esquema (schema) para a coleção de conversas
 const chatSchema = new mongoose.Schema({
-  userMessage: {
-    type: String,
-    required: true
-  },
-  aiResponse: {
-    type: String,
-    required: true
-  },
-  timestamp: {
-    type: Date,
-    default: Date.now
+  userMessage: { type: String, required: true },
+  aiResponse: { type: String, required: true },
+  timestamp: { type: Date, default: Date.now },
+  localizacao: {
+    cidade: String,
+    estado: String,
+    pais: String
   }
 });
+
 
 // Criando o modelo com base no esquema definido
 const Chat = mongoose.model('Chat', chatSchema);
