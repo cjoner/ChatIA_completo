@@ -132,73 +132,79 @@ document.getElementById('sendMessage').addEventListener('click', async function 
 
     </script>
     <style>
-        body {
-            font-family: Arial, sans-serif;
-            background-color: #f4f4f4;
-            color: #333;
-            margin: 0;
-            padding: 20px;
-        }
+       body {
+    font-family: 'Verdana', sans-serif;
+    background-color: #f9f9f9; /* Cor de fundo suave */
+    color: #4d4d4d; /* Cor de texto escura */
+    margin: 0;
+    padding: 20px;
+}
 
-        h1 {
-            color: #4d749d;
-            align-content: center;
-            background-color: #6ab7c5;
-            width: 100%;
-            height: 70px;
-            margin: 0px;
-            text-align: center;
-        }
+h1 {
+    color: #d35400; /* Laranja queimado */
+    background-color: #f39c12; /* Laranja claro */
+    width: 100%;
+    height: 80px; /* Aumentado para mais destaque */
+    margin: 0px;
+    text-align: center;
+    line-height: 80px; /* Centraliza verticalmente */
+    font-size: 2.5em; /* Tamanho da fonte aumentado */
+}
 
-        #userInput {
-            width: 75%;
-            height: 30px;
-        }
+#userInput {
+    width: 70%; /* Ajuste na largura */
+    height: 35px; /* Aumentado para melhor usabilidade */
+    border: 2px solid #e67e22; /* Bordas em tom laranja */
+    border-radius: 5px; /* Bordas arredondadas */
+    padding: 5px; /* Espaçamento interno */
+}
 
-        #inputArea {
-            margin-top: 20px;
-            text-align: center;
-        }
+#inputArea {
+    margin-top: 20px;
+    text-align: center;
+}
 
-        #blocoFora {
-            width: 100%;
-            margin: 0px;
-            display: grid;
-        }
+#blocoFora {
+    width: 100%;
+    margin: 0px;
+    display: grid;
+}
 
-        #outputArea1 {
-            margin-top: 20px;
-            margin-left: 100px;
-            text-align: start;
-            border: 1px solid #ddd;
-            background-color: #b6d7f2;
-            width: 700px;
-        }
+#outputArea1, #outputArea2 {
+    margin-top: 20px;
+    padding: 10px; /* Espaçamento interno */
+    border: 1px solid #ddd; /* Borda leve */
+    border-radius: 8px; /* Bordas arredondadas */
+    width: 700px;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1); /* Sombra suave */
+}
 
-        #outputArea2 {
-            margin-top: 20px;
-            margin-right: 100px;
-            text-align: end;
-            border: 1px solid #ddd;
-            background-color: #7cbcc5;
-            width: 700px;
-            display: flex;
-            justify-self: right;
-        }
+#outputArea1 {
+    background-color: #d1e7dd; /* Verde claro */
+    text-align: left; /* Alinhamento à esquerda */
+}
 
-        #sendMessage {
-            margin-top: 10px;
-            padding: 10px 20px;
-            background-color: #6fb3c4;
-            color: white;
-            border: none;
-            cursor: pointer;
-            width: 150px;
-        }
+#outputArea2 {
+    background-color: #f8d7da; /* Rosa claro */
+    text-align: right; /* Alinhamento à direita */
+}
 
-        #sendMessage:hover {
-            background-color: #7cc4d6;
-        }
+#sendMessage {
+    margin-top: 10px;
+    padding: 10px 20px;
+    background-color: #e67e22; /* Cor de fundo do botão */
+    color: white;
+    border: none;
+    border-radius: 5px; /* Bordas arredondadas */
+    cursor: pointer;
+    width: 150px;
+    font-size: 1.1em; /* Tamanho da fonte aumentado */
+}
+
+#sendMessage:hover {
+    background-color: #d35400; /* Cor ao passar o mouse */
+}
+
     </style>
 </body>
 
