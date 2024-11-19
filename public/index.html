@@ -48,7 +48,7 @@
                 const historico = response.data;
     
                 historico.messages.forEach(msg => {
-                    const outputArea = msg.sender === 'user' ? outputArea1 : outputArea2;
+                    const outputArea = msg.sender === 'user' ? document.getElementById('outputArea1') : document.getElementById('outputArea2');
                     const messageDiv = document.createElement('div');
                     messageDiv.textContent = `${msg.sender === 'user' ? 'Você' : 'Chef de Cozinha AI'}: ${msg.text}`;
                     outputArea.appendChild(messageDiv);
@@ -67,12 +67,12 @@
                 // Exibir a mensagem do usuário
                 const userMessageDiv = document.createElement('div');
                 userMessageDiv.textContent = `Você: ${userInput}`;
-                outputArea1.appendChild(userMessageDiv);
+                document.getElementById('outputArea1').appendChild(userMessageDiv);
     
                 // Exibir a resposta da IA
                 const aiMessageDiv = document.createElement('div');
                 aiMessageDiv.textContent = `Chef de Cozinha AI: ${aiMessage}`;
-                outputArea2.appendChild(aiMessageDiv);
+                document.getElementById('outputArea2').appendChild(aiMessageDiv);
     
                 // Salvar no banco de dados
                 await salvarHistorico(userId, userInput, aiMessage);
@@ -80,7 +80,7 @@
                 console.error('Erro ao processar mensagem:', error);
                 const errorDiv = document.createElement('div');
                 errorDiv.textContent = 'Erro ao obter resposta do Chef de Cozinha AI.';
-                outputArea2.appendChild(errorDiv);
+                document.getElementById('outputArea2').appendChild(errorDiv);
             }
         }
     
