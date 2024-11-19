@@ -18,160 +18,198 @@
             <input type="text" id="userInput" placeholder="Digite sua pergunta..." />
             <button id="sendMessage">Enviar</button>
         </div>
+        <p>Autora: Clara Camily Joner Heck</p>
     </div>
 
     <script>
-        // Defina a URL base para o backend
-        const API_BASE_URL = 'https://chatia-completo.onrender.com';
-
-        // Variável para controlar o estado de visibilidade do histórico
-        let isHistoricoVisible = false;
-
         // Função para salvar o histórico no MongoDB
-        async function salvarHistorico(userId, userMessage, aiMessage) {
-            const data = { userId, userMessage, aiMessage };
+function salvarHistoricoComGeolocalizacao(message, cidade, estado, pais, userId) {
+    const data = { userId, message, cidade, estado, pais };
+
+    fetch('/api/db_chatChef_historico', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(data)
+    })
+    .then(response => response.text())
+    .then(data => {
+        console.log('Histórico salvo com geolocalização:', data);
+    })
+    .catch(error => {
+        console.error('Erro ao salvar histórico:', error);
+    });
+}
+
+// Função para obter a localização do usuário usando a API de Geolocalização
+// Função para obter a localização do usuário usando a API de Geolocalização
+// Função para obter a localização do usuário usando a API de Geolocalização
+function obterLocalizacao(message, userId) {
+    if (navigator.geolocation) {
+        navigator.geolocation.getCurrentPosition(async function (position) {
+            const lat = position.coords.latitude;
+            const long = position.coords.longitude;
+            const apiKey = 'AIzaSyAYy3ZHrR2HPNU6UPn1QZRcvN8tjgmnbfE'; // Substitua pela sua chave de API do Google
+
+            const geocodeUrl = `https://maps.googleapis.com/maps/api/geocode/json?latlng=${lat},${long}&key=${apiKey}`;
 
             try {
-                const response = await axios.post(`${API_BASE_URL}/api/db_chatChef_historico`, data);
-                console.log('Histórico salvo:', response.data);
+                const response = await axios.get(geocodeUrl);
+
+                if (response.data && response.data.results && response.data.results.length > 0) {
+                    const addressComponents = response.data.results[0].address_components;
+
+                    let cidade = '', estado = '', pais = '';
+                    addressComponents.forEach(component => {
+                        if (component.types.includes('locality') || component.types.includes('administrative_area_level_2')) {
+                            cidade = component.long_name; // Captura a cidade
+                        }
+                        if (component.types.includes('administrative_area_level_1')) {
+                            estado = component.long_name; // Captura o estado
+                        }
+                        if (component.types.includes('country')) {
+                            pais = component.long_name; // Captura o país
+                        }
+                    });
+
+                    console.log(`Cidade: ${cidade}, Estado: ${estado}, País: ${pais}`);
+
+                    // Salvar o histórico com a mensagem, IP e localização
+                    salvarHistoricoComGeolocalizacao(message, cidade, estado, pais, userId);
+                } else {
+                    console.error('Nenhum resultado encontrado para a geolocalização.');
+                }
+
             } catch (error) {
-                console.error('Erro ao salvar histórico:', error);
-            }
-        }
-
-        // Função para carregar o histórico do MongoDB
-async function carregarHistorico(userId) {
-    try {
-        const response = await axios.get('${API_BASE_URL}/api/db_chatChef_historico/${userId}');
-        const historico = response.data;
-
-        if (historico && historico.messages) {
-            historico.messages.forEach(msg => {
-                const outputArea = msg.sender === 'user' ? outputArea1 : outputArea2;
-                const messageDiv = document.createElement('div');
-                        messageDiv.textContent = `${msg.sender === 'user' ? 'Você' : 'Chef de Cozinha AI'}: ${msg.text}`;
-                outputArea.appendChild(messageDiv);
-            });
-        }
-    } catch (error) {
-        console.error('Erro ao carregar histórico:', error);
-    }
-}
-
-// Ao carregar a página, carregue o histórico de um usuário
-window.onload = async function() {
-    const userId = "user123";  // Defina um ID de usuário único
-    await carregarHistorico(userId);  // Carregar histórico de mensagens
-};
-
-// Função para enviar a mensagem e obter a resposta do AI
-async function enviarMensagem(userInput, userId) {
-    try {
-        // Enviar a mensagem do usuário para o backend e obter resposta da IA
-        const response = await axios.get(`${API_BASE_URL}/api/db_chatChef_historico/${userId}`);
-        const aiMessage = response.data.response;
-
-        // Exibir a mensagem do usuário e a resposta da IA
-        const userMessageDiv = document.createElement('div');
-        userMessageDiv.textContent = 'Você: ${userInput}';
-        outputArea1.appendChild(userMessageDiv);
-
-        const aiMessageDiv = document.createElement('div');
-        aiMessageDiv.textContent = 'Chef de Cozinha AI: ${aiMessage}';
-        outputArea2.appendChild(aiMessageDiv);
-
-        // Salvar o histórico no banco de dados
-        await salvarHistorico(userId, userInput, aiMessage);
-    } catch (error) {
-        console.error('Erro ao processar a mensagem:', error);
-        const errorDiv = document.createElement('div');
-        errorDiv.textContent = 'Erro ao obter resposta do Chef de Cozinha AI.';
-        outputArea2.appendChild(errorDiv);
-    }
-}
-
-        // Evento para enviar a mensagem
-        document.getElementById('sendMessage').addEventListener('click', async function () {
-            const userInput = document.getElementById('userInput').value;
-            if (userInput) {
-                await enviarMensagem(userInput, userId);
-                document.getElementById('userInput').value = ''; // Limpar input após envio
+                console.error('Erro ao obter a geolocalização:', error);
             }
         });
+    } else {
+        console.error('Geolocalização não suportada pelo navegador.');
+    }
+}
+
+
+
+// Função para enviar a mensagem e obter a resposta do AI
+document.getElementById('sendMessage').addEventListener('click', async function () {
+    const userInput = document.getElementById('userInput').value;
+    const outputArea1 = document.getElementById('outputArea1');
+    const outputArea2 = document.getElementById('outputArea2');
+    const userId = 'user123';  // Pode ser um ID dinâmico ou gerado pelo sistema
+
+    if (userInput) {
+        const userMessageDiv = document.createElement('div');
+        userMessageDiv.textContent = `Você: ${userInput}`;
+        outputArea1.appendChild(userMessageDiv);
+
+        try {
+            // Faça a chamada correta à API
+            const response = await axios.post('https://chatia-completo.onrender.com/chat', {
+                message: userInput // Envie a mensagem do usuário para a IA
+            });
+
+            if (response && response.data) {
+                const aiMessageDiv = document.createElement('div');
+                aiMessageDiv.textContent = `Chef de Cozinha AI: ${response.data.response}`;
+                outputArea2.appendChild(aiMessageDiv);
+
+                // Obter a localização e salvar o histórico com geolocalização
+                obterLocalizacao(userInput, userId); // Passa a mensagem e o userId para a função de localização
+            } else {
+                const errorDiv = document.createElement('div');
+                errorDiv.textContent = 'Erro ao obter resposta do servidor.';
+                outputArea2.appendChild(errorDiv);
+            }
+        } catch (error) {
+            console.error('Error:', error);
+            const errorDiv = document.createElement('div');
+            errorDiv.textContent = 'Erro ao obter resposta do Chef de Cozinha AI.';
+            outputArea2.appendChild(errorDiv);
+        }
+
+        document.getElementById('userInput').value = '';
+    }
+});
 
     </script>
-
     <style>
+       p{
+        justify-content: center;
+       }
         body {
-            font-family: Arial, sans-serif;
-            background-color: #f4f4f4;
-            color: #333;
-            margin: 0;
-            padding: 20px;
-        }
+    font-family: 'Verdana', sans-serif;
+    background-color: #fefefe; /* Cor de fundo mais suave */
+    color: #333; /* Cor de texto escura */
+    margin: 0;
+    padding: 20px;
+}
 
-        h1 {
-            color: #4d749d;
-            align-content: center;
-            background-color: #6ab7c5;
-            width: 100%;
-            height: 70px;
-            margin: 0px;
-            text-align: center;
-        }
+h1 {
+    color: #e67e22; /* Laranja suave */
+    background-color: #f5cba0; /* Laranja muito claro */
+    width: 100%;
+    height: 80px; /* Aumentado para mais destaque */
+    margin: 0px;
+    text-align: center;
+    line-height: 80px; /* Centraliza verticalmente */
+    font-size: 2.5em; /* Tamanho da fonte aumentado */
+}
 
-        #userInput {
-            width: 75%;
-            height: 30px;
-        }
+#userInput {
+    width: 70%; /* Ajuste na largura */
+    height: 35px; /* Aumentado para melhor usabilidade */
+    border: 2px solid #d5b596; /* Bordas em tom de bege */
+    border-radius: 5px; /* Bordas arredondadas */
+    padding: 5px; /* Espaçamento interno */
+}
 
-        #inputArea {
-            margin-top: 20px;
-            text-align: center;
-        }
+#inputArea {
+    margin-top: 20px;
+    text-align: center;
+}
 
-        #blocoFora {
-            width: 100%;
-            margin: 0px;
-            display: grid;
-        }
+#blocoFora {
+    width: 100%;
+    margin: 0px;
+    display: grid;
+}
 
-        #outputArea1,
-        #outputArea2 {
-            margin-top: 20px;
-            text-align: start;
-            border: 1px solid #ddd;
-            background-color: #b6d7f2;
-            width: 700px;
-            padding: 10px;
-            display: block;
-            /* Garantir que as mensagens sejam empilhadas em bloco */
-        }
+#outputArea1 {
+    margin-top: 20px;
+    padding: 10px; /* Espaçamento interno */
+    border: 1px solid #ddd; /* Borda leve */
+    border-radius: 8px; /* Bordas arredondadas */
+    width: 700px;
+    background-color: #d4edda; /* Verde claro e suave */
+    text-align: left; /* Alinhamento à esquerda */
+}
 
-        #outputArea2 {
-            background-color: #7cbcc5;
-            text-align: end;
-            margin-right: 100px;
-        }
+#outputArea2 {
+    margin-top: 20px;
+    padding: 10px; /* Espaçamento interno */
+    border: 1px solid #ddd; /* Borda leve */
+    border-radius: 8px; /* Bordas arredondadas */
+    width: 700px;
+    background-color: #8ea5c2; /* Rosa claro e suave */
+    text-align: right; /* Alinhamento à direita */
+}
 
-        #outputArea1 {
-            margin-left: 100px;
-            background-color: #b6d7f2;
-        }
+#sendMessage {
+    margin-top: 10px;
+    padding: 10px 20px;
+    background-color: #d5b596; /* Cor de fundo do botão */
+    color: white;
+    border: none;
+    border-radius: 5px; /* Bordas arredondadas */
+    cursor: pointer;
+    width: 150px;
+    font-size: 1.1em; /* Tamanho da fonte aumentado */
+}
 
-        #sendMessage {
-            margin-top: 10px;
-            padding: 10px 20px;
-            background-color: #6fb3c4;
-            color: white;
-            border: none;
-            cursor: pointer;
-            width: 150px;
-        }
+#sendMessage:hover {
+    background-color: #b89f7a; /* Cor ao passar o mouse */
+}
 
-        #sendMessage:hover {
-            background-color: #7cc4d6;
-        }
     </style>
 </body>
 
