@@ -11,6 +11,7 @@
 <body>
     <h1>Chat com o Chef de Cozinha AI</h1>
     <button id="loadHistory">Carregar Histórico</button>
+    <button id="clearHistory">Limpar Histórico</button> <!-- Novo botão para limpar o histórico -->
     <div id="blocoFora">
         <div id="outputArea1"></div>
         <div id="outputArea2"></div>
@@ -24,6 +25,9 @@
     <script>
         // Defina a URL base para o backend
         const API_BASE_URL = 'https://chatia-completo.onrender.com';
+
+        // Variável para controlar o estado de visibilidade do histórico
+        let isHistoricoVisible = false;
 
         // Função para salvar o histórico no MongoDB
         async function salvarHistorico(userId, userMessage, aiMessage) {
@@ -98,9 +102,25 @@
         document.addEventListener('DOMContentLoaded', () => {
             const userId = 'user123'; // Substituir por ID real ou gerado dinamicamente
 
-            // Evento para carregar o histórico ao clicar no botão "Carregar Histórico"
+            // Evento para carregar ou esconder o histórico ao clicar no botão "Carregar Histórico"
             document.getElementById('loadHistory').addEventListener('click', async function () {
-                carregarHistorico(userId); // Carregar histórico quando o botão for clicado
+                if (isHistoricoVisible) {
+                    // Esconder histórico
+                    outputArea1.innerHTML = '';
+                    outputArea2.innerHTML = '';
+                    isHistoricoVisible = false;
+                } else {
+                    // Carregar histórico
+                    carregarHistorico(userId);
+                    isHistoricoVisible = true;
+                }
+            });
+
+            // Evento para limpar o histórico ao clicar no botão "Limpar Histórico"
+            document.getElementById('clearHistory').addEventListener('click', function () {
+                outputArea1.innerHTML = '';  // Limpar a área de saída 1 (usuário)
+                outputArea2.innerHTML = '';  // Limpar a área de saída 2 (AI)
+                isHistoricoVisible = false;  // Alterar o estado para histórico não visível
             });
 
             // Evento para enviar a mensagem
@@ -115,7 +135,7 @@
     </script>
 
     <style>
-        #loadHistory {
+        #loadHistory, #clearHistory {
             margin-top: 10px;
             padding: 10px 20px;
             background-color: #4c9c61;
@@ -125,7 +145,7 @@
             width: 200px;
         }
 
-        #loadHistory:hover {
+        #loadHistory:hover, #clearHistory:hover {
             background-color: #66b57a;
         }
 
