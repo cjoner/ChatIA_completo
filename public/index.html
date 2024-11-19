@@ -40,26 +40,32 @@
         }
 
         // Função para carregar o histórico do MongoDB
-        async function carregarHistorico(userId) {
-            try {
-                const response = await axios.get(`${API_BASE_URL}/api/db_chatChef_historico/${userId}`);
-                const historico = response.data;
+async function carregarHistorico(userId) {
+    try {
+        const response = await axios.get(`${API_BASE_URL}/api/db_chatChef_historico/${userId}`);
+        const historico = response.data;
 
-                if (historico && historico.messages) {
-                    historico.messages.forEach(msg => {
-                        const outputArea = msg.sender === 'user' ? outputArea1 : outputArea2;
-                        const messageDiv = document.createElement('div');
-                        messageDiv.textContent = `${msg.sender === 'user' ? 'Você' : 'Chef de Cozinha AI'}: ${msg.text}`;
-                        outputArea.appendChild(messageDiv);
-                    });
-                }
-            } catch (error) {
-                console.error('Erro ao carregar histórico:', error);
-            }
+        if (historico && historico.messages) {
+            historico.messages.forEach(msg => {
+                const outputArea = msg.sender === 'user' ? outputArea1 : outputArea2;
+                const messageDiv = document.createElement('div');
+                messageDiv.textContent = `${msg.sender === 'user' ? 'Você' : 'Chef de Cozinha AI'}: ${msg.text}`;
+                outputArea.appendChild(messageDiv);
+            });
         }
+    } catch (error) {
+        console.error('Erro ao carregar histórico:', error);
+    }
+}
 
-        // Função para enviar a mensagem e obter a resposta do AI
-        async function enviarMensagem(userInput, userId) {
+// Ao carregar a página, carregue o histórico de um usuário
+window.onload = async function() {
+    const userId = "user123";  // Defina um ID de usuário único
+    await carregarHistorico(userId);  // Carregar histórico de mensagens
+};
+
+// Função para enviar a mensagem e obter a resposta do AI
+async function enviarMensagem(userInput, userId) {
     try {
         // Enviar a mensagem do usuário para o backend e obter resposta da IA
         const response = await axios.post(`${API_BASE_URL}/chat`, { message: userInput, userId: userId });
@@ -84,22 +90,18 @@
     }
 }
 
-        
+        // Evento para enviar a mensagem
+        document.getElementById('sendMessage').addEventListener('click', async function () {
+            const userInput = document.getElementById('userInput').value;
+            if (userInput) {
+                await enviarMensagem(userInput, userId);
+                document.getElementById('userInput').value = ''; // Limpar input após envio
+            }
+        });
 
-
-            // Evento para enviar a mensagem
-            document.getElementById('sendMessage').addEventListener('click', async function () {
-                const userInput = document.getElementById('userInput').value;
-                if (userInput) {
-                    await enviarMensagem(userInput, userId);
-                    document.getElementById('userInput').value = ''; // Limpar input após envio
-                }
-            });
-        
     </script>
 
     <style>
-
         body {
             font-family: Arial, sans-serif;
             background-color: #f4f4f4;
