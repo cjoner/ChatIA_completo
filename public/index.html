@@ -11,7 +11,6 @@
 <body>
     <h1>Chat com o Chef de Cozinha AI</h1>
     <button id="loadHistory">Carregar Histórico</button>
-    <button id="clearHistory">Limpar Histórico</button> <!-- Novo botão para limpar o histórico -->
     <div id="blocoFora">
         <div id="outputArea1"></div>
         <div id="outputArea2"></div>
@@ -116,12 +115,6 @@
                 }
             });
 
-            // Evento para limpar o histórico ao clicar no botão "Limpar Histórico"
-            document.getElementById('clearHistory').addEventListener('click', function () {
-                outputArea1.innerHTML = '';  // Limpar a área de saída 1 (usuário)
-                outputArea2.innerHTML = '';  // Limpar a área de saída 2 (AI)
-                isHistoricoVisible = false;  // Alterar o estado para histórico não visível
-            });
 
             // Evento para enviar a mensagem
             document.getElementById('sendMessage').addEventListener('click', async function () {
@@ -135,7 +128,7 @@
     </script>
 
     <style>
-        #loadHistory, #clearHistory {
+        #loadHistory {
             margin-top: 10px;
             padding: 10px 20px;
             background-color: #4c9c61;
@@ -145,7 +138,7 @@
             width: 200px;
         }
 
-        #loadHistory:hover, #clearHistory:hover {
+        #loadHistory:hover {
             background-color: #66b57a;
         }
 
@@ -183,24 +176,27 @@
             display: grid;
         }
 
-        #outputArea1 {
+        #outputArea1,
+        #outputArea2 {
             margin-top: 20px;
-            margin-left: 100px;
             text-align: start;
             border: 1px solid #ddd;
             background-color: #b6d7f2;
             width: 700px;
+            padding: 10px;
+            display: block;
+            /* Garantir que as mensagens sejam empilhadas em bloco */
         }
 
         #outputArea2 {
-            margin-top: 20px;
-            margin-right: 100px;
-            text-align: end;
-            border: 1px solid #ddd;
             background-color: #7cbcc5;
-            width: 700px;
-            display: flex;
-            justify-self: right;
+            text-align: end;
+            margin-right: 100px;
+        }
+
+        #outputArea1 {
+            margin-left: 100px;
+            background-color: #b6d7f2;
         }
 
         #sendMessage {
