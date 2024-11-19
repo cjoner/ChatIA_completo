@@ -24,25 +24,22 @@ const historicoSchema = new mongoose.Schema({
   }]
 });
 
-const Historico = mongoose.model('Historico', historicoSchema);
+const HistoricoModel = mongoose.model('Historico', historicoSchema); // Correção: nome correto da variável do modelo
 
 // Endpoint para registrar histórico
 app.post('/api/db_chatChef_historico', async (req, res) => {
-  const { userMessage, aiMessage } = req.body;
+  const { userId, userMessage, aiMessage } = req.body;
 
   try {
-    // Buscando o histórico do usuário baseado em um critério, por exemplo, email ou nome
-    let user = await Historico.findOne({ 'messages.sender': 'user' });
+    // Buscando o histórico do usuário baseado no userId
+    let user = await HistoricoModel.findOne({ userId });
 
     if (!user) {
-      // Se não encontrar, significa que o usuário não tem histórico. Retorne um erro ou crie um novo usuário.
-      return res.status(404).send('Usuário não encontrado');
+      // Se não encontrar, criar um novo histórico para o usuário
+      user = new HistoricoModel({ userId, messages: [] });
     }
 
-    // Agora você tem o userId, vamos pegar o ID do usuário do histórico encontrado
-    const userId = user.userId;
-
-    // Atualizar o histórico do usuário com a nova mensagem
+    // Atualizar o histórico com as novas mensagens
     user.messages.push({ sender: 'user', text: userMessage });
     user.messages.push({ sender: 'ai', text: aiMessage });
 
@@ -59,7 +56,7 @@ app.get('/api/db_chatChef_historico/:userId', async (req, res) => {
   const { userId } = req.params;
 
   try {
-    const historico = await Historico.findOne({ userId: mongoose.Types.ObjectId(userId) });
+    const historico = await HistoricoModel.findOne({ userId });
 
     if (!historico) {
       return res.status(404).send('Histórico não encontrado');
@@ -96,12 +93,11 @@ const generationConfig = {
 // Rota para processar a mensagem do usuário e obter a resposta da IA
 app.post('/chat', async (req, res) => {
     try {
-        const userMessage = req.body.message;
-        const userId = req.body.userId;  // Adicionando o ID do usuário para rastrear o histórico
+        const { message: userMessage, userId } = req.body;  // Desestruturando a mensagem e o userId
         console.log('Mensagem recebida do usuário:', userMessage);
 
         // Recuperar o histórico de conversas anteriores do usuário
-        const historico = await Historico.findOne({ userId });
+        const historico = await HistoricoModel.findOne({ userId });
 
         let history = [];
         if (historico) {
@@ -127,7 +123,7 @@ app.post('/chat', async (req, res) => {
         console.log('Resposta da IA:', aiResponse);
 
         // Salvar a nova mensagem da IA no banco de dados
-        await Historico.findOneAndUpdate(
+        await HistoricoModel.findOneAndUpdate(
             { userId },
             { $push: { messages: [{ sender: 'ai', text: aiResponse }] } },
             { upsert: true, new: true }
@@ -140,7 +136,6 @@ app.post('/chat', async (req, res) => {
         res.status(500).send('Erro interno do servidor');
     }
 });
-
 
 // Rota básica para o caminho root
 app.get('/', (req, res) => {
