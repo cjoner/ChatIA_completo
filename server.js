@@ -6,7 +6,7 @@ const app = express();
 
 // Configurar o middleware CORS
 const corsOptions = {
-    origin: ['https://chat-ia-chef.netlify.app','https://chatia-completo.onrender.com/'], // Permitir apenas este domínio
+    origin: ['https://chat-ia-chef.netlify.app','https://mongodb-usuario-chatia.onrender.com/'], // Permitir apenas este domínio
     methods: ['GET', 'POST'], // Métodos permitidos
     allowedHeaders: ['Content-Type'], // Cabeçalhos permitidos
 };
@@ -37,56 +37,69 @@ mongoose.connect('mongodb+srv://clarachjoner2007:alex156600@chat-chef-ia.ficqopw
 .catch(err => console.error('Erro ao conectar ao MongoDB', err));
 
 // Definindo o schema do histórico
+// Atualizar o schema para incluir a mensagem da IA
 const historicoSchema = new mongoose.Schema({
     userId: String,
-    message: String,
-    localizacao: {
-        cidade: String,
-        estado: String,
-        pais: String
-    },
-    timestamp: { type: Date, default: Date.now }
+    messages: [{
+        sender: String, // "user" ou "ai"
+        text: String,
+        timestamp: { type: Date, default: Date.now }
+    }]
 });
 
+// Modelo atualizado
 const Historico = mongoose.model('Historico', historicoSchema);
 
-// Definindo o schema para logs de IP e data
-const logSchema = new mongoose.Schema({
-    userId: String,
-    ip: String,
-    timestamp: { type: Date, default: Date.now }
-});
-
-const Log = mongoose.model('Log', logSchema);
-
-// Endpoint para registrar o histórico e o IP público, agora com cidade, estado e país
+// Endpoint para registrar o histórico e o IP público
 app.post('/api/db_chatChef_historico', async (req, res) => {
-    const { message, cidade, estado, pais } = req.body; // Receber mais informações do cliente
+    const { message } = req.body; // Agora não pegamos o userId do corpo da requisição
 
     try {
         // Obter o IP público usando a API do Ipfy
-        const response = await axios.get('https://api.ipify.org?format=json'); // Requisição para obter o IP
-        const userIp = response.data.ip; // Extrair o IP da resposta
+        const response = await axios.get('https://api.ipify.org?format=json');
+        const userIp = response.data.ip; // IP público da máquina
 
-        // Verificar se o IP foi corretamente capturado
-        console.log('IP público capturado:', userIp);
+        console.log('Captured User Public IP:', userIp);
 
-        // Criar um novo documento de histórico com todas as informações
-        const novoHistorico = new Historico({
-            userId: userIp,
-            message,
-            localizacao: { cidade, estado, pais } // Adicionando cidade, estado e país ao registro
-        });
+        // Salvar o histórico de mensagens com o IP no campo userId
+        const novoHistorico = new Historico({ userId: userIp, message });
 
-        // Salvar no banco de dados MongoDB
+        console.log('Saving new history record:', novoHistorico);
+
         await novoHistorico.save();
 
-        res.status(201).send('Histórico com geolocalização salvo com sucesso');
+        const novoLog = new Log({ userId: userIp, ip: userIp });
+
+        console.log('Saving new log record:', novoLog);
+
+        await novoLog.save();
+
+        res.status(201).send('Histórico e log salvos com sucesso');
     } catch (error) {
-        console.error('Erro ao salvar histórico:', error);
-        res.status(500).send('Erro ao salvar histórico');
+        console.error('Erro ao salvar histórico e log:', error);
+        res.status(500).send('Erro ao salvar histórico e log');
     }
 });
+
+// --- Adicione o novo endpoint abaixo deste bloco ---
+
+// Endpoint para obter histórico de um usuário
+app.get('/api/db_chatChef_historico/:userId', async (req, res) => {
+    const { userId } = req.params;
+
+    try {
+        const historico = await Historico.findOne({ userId });
+        if (!historico) {
+            return res.status(404).send('Histórico não encontrado');
+        }
+
+        res.json(historico);
+    } catch (error) {
+        console.error('Erro ao buscar histórico:', error);
+        res.status(500).send('Erro ao buscar histórico');
+    }
+});
+
 
 
 //--------------------CHAT IA---------------------//
