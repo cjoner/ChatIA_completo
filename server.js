@@ -80,21 +80,19 @@ app.get('/api/db_chatChef_historico/:userId', async (req, res) => {
     const { userId } = req.params;
 
     try {
-        console.log('Requisição para obter histórico do userId:', userId);
         const historico = await Historico.findOne({ userId });
 
         if (!historico) {
-            console.log('Histórico não encontrado para o userId:', userId);
             return res.status(404).send('Histórico não encontrado');
         }
 
-        console.log('Histórico encontrado:', historico);
-        res.json(historico);
+        res.json(historico);  // Retorna o histórico completo
     } catch (error) {
         console.error('Erro ao buscar histórico:', error);
         res.status(500).send('Erro ao buscar histórico');
     }
 });
+
 
 
   
@@ -126,28 +124,50 @@ const generationConfig = {
 app.post('/chat', async (req, res) => {
     try {
         const userMessage = req.body.message;
-        console.log('Received message from user:', userMessage);
+        const userId = req.body.userId;  // Adicionando o ID do usuário para rastrear o histórico
+        console.log('Mensagem recebida do usuário:', userMessage);
 
-        // Iniciar uma nova sessão de chat
+        // Recuperar o histórico de conversas anteriores do usuário
+        const historico = await Historico.findOne({ userId });
+
+        let history = [];
+        if (historico) {
+            // Caso haja histórico, carregar as mensagens anteriores
+            history = historico.messages.map(msg => ({
+                sender: msg.sender,
+                text: msg.text
+            }));
+        }
+
+        // Adicionar a nova mensagem ao histórico
+        history.push({ sender: 'user', text: userMessage });
+
+        // Iniciar a sessão de chat com o histórico completo
         const chatSession = model.startChat({
             generationConfig,
-            history: [],
+            history: history,  // Passando o histórico completo para a IA
         });
 
+        // Enviar a mensagem do usuário para a IA e obter a resposta
         const result = await chatSession.sendMessage(userMessage);
         const aiResponse = result.response.text();
-        console.log('AI response:', aiResponse);
+        console.log('Resposta da IA:', aiResponse);
 
-        // Salvar o histórico de chat no banco de dados
-        const chat = new Chat({ userMessage, aiResponse });
-        await chat.save();
+        // Salvar a nova mensagem da IA no banco de dados
+        await Historico.findOneAndUpdate(
+            { userId },
+            { $push: { messages: [{ sender: 'ai', text: aiResponse }] } },
+            { upsert: true, new: true }
+        );
 
+        // Enviar a resposta da IA de volta para o frontend
         res.json({ response: aiResponse });
     } catch (error) {
-        console.error('Error processing chat:', error);
-        res.status(500).send('Internal Server Error');
+        console.error('Erro ao processar o chat:', error);
+        res.status(500).send('Erro interno do servidor');
     }
 });
+
 
 // Rota básica para o caminho root
 app.get('/', (req, res) => {
