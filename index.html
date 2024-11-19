@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chat com o Chef de Cozinha AI</title>
+    <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+</head>
+
+<body>
+    <h1>Chat com o Chef de Cozinha AI</h1>
+    <button id="loadHistory">Carregar Histórico</button>
+    <button id="clearHistory">Limpar Histórico</button> <!-- Novo botão para limpar o histórico -->
+    <div id="blocoFora">
+        <div id="outputArea1"></div>
+        <div id="outputArea2"></div>
+
+        <div id="inputArea">
+            <input type="text" id="userInput" placeholder="Digite sua pergunta..." />
+            <button id="sendMessage">Enviar</button>
+        </div>
+    </div>
+
+    <script>
+        // Defina a URL base para o backend
+        const API_BASE_URL = 'https://chatia-completo.onrender.com';
+
+        // Variável para controlar o estado de visibilidade do histórico
+        let isHistoricoVisible = false;
+
+        // Função para salvar o histórico no MongoDB
+        async function salvarHistorico(userId, userMessage, aiMessage) {
+            const data = { userId, userMessage, aiMessage };
+
+            try {
+                const response = await axios.post(`${API_BASE_URL}/api/db_chatChef_historico`, data);
+                console.log('Histórico salvo:', response.data);
+            } catch (error) {
+                console.error('Erro ao salvar histórico:', error);
+            }
+        }
+
+        // Função para carregar o histórico do MongoDB
+        async function carregarHistorico(userId) {
+            try {
+                const response = await axios.get(`${API_BASE_URL}/api/db_chatChef_historico/${userId}`);
+                const historico = response.data;
+
+                if (historico && historico.messages) {
+                    historico.messages.forEach(msg => {
+                        const outputArea = msg.sender === 'user' ? outputArea1 : outputArea2;
+                        const messageDiv = document.createElement('div');
+                        messageDiv.textContent = `${msg.sender === 'user' ? 'Você' : 'Chef de Cozinha AI'}: ${msg.text}`;
+                        outputArea.appendChild(messageDiv);
+                    });
+                }
+            } catch (error) {
+                console.error('Erro ao carregar histórico:', error);
+            }
+        }
+
+        // Função para enviar a mensagem e obter a resposta do AI
+        async function enviarMensagem(userInput, userId) {
+            try {
+                // Recuperar histórico de mensagens do usuário
+                const responseHistorico = await axios.get(`${API_BASE_URL}/api/db_chatChef_historico/${userId}`);
+                const historico = responseHistorico.data;
+
+                // Exibir mensagens anteriores se houver
+                historico.messages.forEach(msg => {
+                    const outputArea = msg.sender === 'user' ? outputArea1 : outputArea2;
+                    const messageDiv = document.createElement('div');
+                    messageDiv.textContent = `${msg.sender === 'user' ? 'Você' : 'Chef de Cozinha AI'}: ${msg.text}`;
+                    outputArea.appendChild(messageDiv);
+                });
+
+                // Enviar a mensagem do usuário para o backend e obter resposta da IA
+                const response = await axios.post(`${API_BASE_URL}/chat`, { message: userInput });
+                const aiMessage = response.data.response;
+
+                // Exibir a mensagem do usuário e resposta da IA
+                const userMessageDiv = document.createElement('div');
+                userMessageDiv.textContent = `Você: ${userInput}`;
+                outputArea1.appendChild(userMessageDiv);
+
+                const aiMessageDiv = document.createElement('div');
+                aiMessageDiv.textContent = `Chef de Cozinha AI: ${aiMessage}`;
+                outputArea2.appendChild(aiMessageDiv);
+
+                // Salvar o histórico no banco de dados
+                await salvarHistorico(userId, userInput, aiMessage);
+            } catch (error) {
+                console.error('Erro ao processar mensagem:', error);
+                const errorDiv = document.createElement('div');
+                errorDiv.textContent = 'Erro ao obter resposta do Chef de Cozinha AI.';
+                outputArea2.appendChild(errorDiv);
+            }
+        }
+
+        // Configurar eventos
+        document.addEventListener('DOMContentLoaded', () => {
+            const userId = 'user123'; // Substituir por ID real ou gerado dinamicamente
+
+            // Evento para carregar ou esconder o histórico ao clicar no botão "Carregar Histórico"
+            document.getElementById('loadHistory').addEventListener('click', async function () {
+                if (isHistoricoVisible) {
+                    // Esconder histórico
+                    outputArea1.innerHTML = '';
+                    outputArea2.innerHTML = '';
+                    isHistoricoVisible = false;
+                } else {
+                    // Carregar histórico
+                    carregarHistorico(userId);
+                    isHistoricoVisible = true;
+                }
+            });
+
+            // Evento para limpar o histórico ao clicar no botão "Limpar Histórico"
+            document.getElementById('clearHistory').addEventListener('click', function () {
+                outputArea1.innerHTML = '';  // Limpar a área de saída 1 (usuário)
+                outputArea2.innerHTML = '';  // Limpar a área de saída 2 (AI)
+                isHistoricoVisible = false;  // Alterar o estado para histórico não visível
+            });
+
+            // Evento para enviar a mensagem
+            document.getElementById('sendMessage').addEventListener('click', async function () {
+                const userInput = document.getElementById('userInput').value;
+                if (userInput) {
+                    await enviarMensagem(userInput, userId);
+                    document.getElementById('userInput').value = ''; // Limpar input após envio
+                }
+            });
+        });
+    </script>
+
+    <style>
+        #loadHistory, #clearHistory {
+            margin-top: 10px;
+            padding: 10px 20px;
+            background-color: #4c9c61;
+            color: white;
+            border: none;
+            cursor: pointer;
+            width: 200px;
+        }
+
+        #loadHistory:hover, #clearHistory:hover {
+            background-color: #66b57a;
+        }
+
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f4;
+            color: #333;
+            margin: 0;
+            padding: 20px;
+        }
+
+        h1 {
+            color: #4d749d;
+            align-content: center;
+            background-color: #6ab7c5;
+            width: 100%;
+            height: 70px;
+            margin: 0px;
+            text-align: center;
+        }
+
+        #userInput {
+            width: 75%;
+            height: 30px;
+        }
+
+        #inputArea {
+            margin-top: 20px;
+            text-align: center;
+        }
+
+        #blocoFora {
+            width: 100%;
+            margin: 0px;
+            display: grid;
+        }
+
+        #outputArea1 {
+            margin-top: 20px;
+            margin-left: 100px;
+            text-align: start;
+            border: 1px solid #ddd;
+            background-color: #b6d7f2;
+            width: 700px;
+        }
+
+        #outputArea2 {
+            margin-top: 20px;
+            margin-right: 100px;
+            text-align: end;
+            border: 1px solid #ddd;
+            background-color: #7cbcc5;
+            width: 700px;
+            display: flex;
+            justify-self: right;
+        }
+
+        #sendMessage {
+            margin-top: 10px;
+            padding: 10px 20px;
+            background-color: #6fb3c4;
+            color: white;
+            border: none;
+            cursor: pointer;
+            width: 150px;
+        }
+
+        #sendMessage:hover {
+            background-color: #7cc4d6;
+        }
+    </style>
+</body>
+
+</html>
