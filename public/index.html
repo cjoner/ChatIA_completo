@@ -115,21 +115,23 @@
 
         // Botao carregar historico
         document.addEventListener('DOMContentLoaded', () => {
-            const userId = 'user123'; // Substituir por ID real ou gerado dinamicamente
+    const userId = 'user123'; // Substituir por ID real ou gerado dinamicamente
 
-            // Evento para carregar o histórico ao clicar no botão "Carregar Histórico"
-            document.getElementById('loadHistory').addEventListener('click', async function () {
-                carregarHistorico(userId); // Carregar histórico quando o botão for clicado
-            });
+    // Evento para carregar o histórico ao clicar no botão "Carregar Histórico"
+    document.getElementById('loadHistory').addEventListener('click', async function () {
+        carregarHistorico(userId); // Carregar histórico quando o botão for clicado
+    });
 
-            document.getElementById('sendMessage').addEventListener('click', async function () {
-                const userInput = document.getElementById('userInput').value;
-                if (userInput) {
-                    await enviarMensagem(userInput, userId);
-                    document.getElementById('userInput').value = ''; // Limpar input após envio
-                }
-            });
-        });
+    // Evento para enviar a mensagem
+    document.getElementById('sendMessage').addEventListener('click', async function () {
+        const userInput = document.getElementById('userInput').value;
+        if (userInput) {
+            await enviarMensagem(userInput, userId);
+            document.getElementById('userInput').value = ''; // Limpar input após envio
+        }
+    });
+});
+
 
     </script>
 
