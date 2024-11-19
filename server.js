@@ -6,12 +6,12 @@ const app = express();
 
 // Configurar o middleware CORS
 const corsOptions = {
-    origin: ['https://chat-ia-chef.netlify.app','https://mongodb-usuario-chatia.onrender.com/'], // Permitir apenas este domínio
-    methods: ['GET', 'POST'], // Métodos permitidos
-    allowedHeaders: ['Content-Type'], // Cabeçalhos permitidos
+    origin: ['https://chat-ia-chef.netlify.app', 'https://mongodb-usuario-chatia.onrender.com'],
+    methods: ['GET', 'POST'],
+    allowedHeaders: ['Content-Type'],
 };
-
-app.use(cors(corsOptions)); // Usar o middleware CORS com as opções
+app.use(cors(corsOptions));
+// Usar o middleware CORS com as opções
 
 
 // Resto do código do servidor...
@@ -99,6 +99,7 @@ app.get('/api/db_chatChef_historico/:userId', async (req, res) => {
         res.status(500).send('Erro ao buscar histórico');
     }
 });
+  
 
 
 
