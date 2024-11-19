@@ -1,95 +1,76 @@
-
 const express = require('express');
-const cors = require('cors'); // Importar o pacote cors
-
+const mongoose = require('mongoose');
 const app = express();
 
-// Configurar o middleware CORS
-const corsOptions = {
-    origin: ['https://chat-ia-chef.netlify.app', 'https://mongodb-usuario-chatia.onrender.com'],
-    methods: ['GET', 'POST'],
-    allowedHeaders: ['Content-Type'],
-};
-app.use(cors(corsOptions));
-// Usar o middleware CORS com as opções
+const Historico = require('./models/Historico'); // Seu modelo de Histórico de chat
 
-
-// Resto do código do servidor...
-
-
-//-------------------CONEXAO MONGODB-------------------------//
-
-require('dotenv').config();
-
-const mongoose = require('mongoose');
-const axios = require('axios'); // Adicionando axios para a requisição do IP público
-const Chat = require('./models/Chat');
-
-
-app.use(express.json()); // Para lidar com dados JSON no corpo das requisições
+app.use(express.json());
 
 // Conectando ao MongoDB
-mongoose.connect('mongodb+srv://clarachjoner2007:alex156600@chat-chef-ia.ficqopw.mongodb.net/db_chatChef?retryWrites=true&w=majority&appName=Chat-chef-ia', {
-    useNewUrlParser: true,
-    useUnifiedTopology: true,
+mongoose.connect('mongodb+srv://usuario:senha@cluster.mongodb.net/db_chatChef', {
+  useNewUrlParser: true,
+  useUnifiedTopology: true,
 })
 .then(() => console.log('Conectado ao MongoDB'))
 .catch(err => console.error('Erro ao conectar ao MongoDB', err));
 
-// Definindo o schema do histórico
-// Atualizar o schema para incluir a mensagem da IA
+// Definindo o schema de Histórico de Chat
 const historicoSchema = new mongoose.Schema({
-    userId: String,
-    messages: [{
-        sender: String, // "user" ou "ai"
-        text: String,
-        timestamp: { type: Date, default: Date.now }
-    }]
+  userId: mongoose.Schema.Types.ObjectId, // Usando o tipo ObjectId do MongoDB
+  messages: [{
+    sender: String,
+    text: String,
+    timestamp: { type: Date, default: Date.now }
+  }]
 });
 
-// Modelo atualizado
 const Historico = mongoose.model('Historico', historicoSchema);
 
-// Endpoint para registrar o histórico e o IP público
+// Endpoint para registrar histórico
 app.post('/api/db_chatChef_historico', async (req, res) => {
-    const { userId, userMessage, aiMessage } = req.body;
+  const { userMessage, aiMessage } = req.body;
 
-    try {
-        const historico = await Historico.findOneAndUpdate(
-            { userId },
-            { $push: { messages: [
-                { sender: 'user', text: userMessage },
-                { sender: 'ai', text: aiMessage },
-            ] }},
-            { upsert: true, new: true }
-        );
+  try {
+    // Buscando o histórico do usuário baseado em um critério, por exemplo, email ou nome
+    let user = await Historico.findOne({ 'messages.sender': 'user' });
 
-        console.log('Histórico atualizado:', historico);
-        res.status(201).send('Histórico atualizado com sucesso');
-    } catch (error) {
-        console.error('Erro ao salvar histórico:', error);
-        res.status(500).send('Erro ao salvar histórico');
+    if (!user) {
+      // Se não encontrar, significa que o usuário não tem histórico. Retorne um erro ou crie um novo usuário.
+      return res.status(404).send('Usuário não encontrado');
     }
+
+    // Agora você tem o userId, vamos pegar o ID do usuário do histórico encontrado
+    const userId = user.userId;
+
+    // Atualizar o histórico do usuário com a nova mensagem
+    user.messages.push({ sender: 'user', text: userMessage });
+    user.messages.push({ sender: 'ai', text: aiMessage });
+
+    await user.save();
+    res.status(200).send('Histórico atualizado com sucesso');
+  } catch (error) {
+    console.error('Erro ao salvar histórico:', error);
+    res.status(500).send('Erro ao salvar histórico');
+  }
 });
 
-// Endpoint para obter histórico de um usuário
+// Rota para obter o histórico de um usuário
 app.get('/api/db_chatChef_historico/:userId', async (req, res) => {
-    const { userId } = req.params;
+  const { userId } = req.params;
 
-    try {
-        const historico = await Historico.findOne({ userId });
+  try {
+    const historico = await Historico.findOne({ userId: mongoose.Types.ObjectId(userId) });
 
-        if (!historico) {
-            return res.status(404).send('Histórico não encontrado');
-        }
-
-        res.json(historico);  // Retorna o histórico completo
-    } catch (error) {
-        console.error('Erro ao buscar histórico:', error);
-        res.status(500).send('Erro ao buscar histórico');
+    if (!historico) {
+      return res.status(404).send('Histórico não encontrado');
     }
-});
 
+    res.json(historico);  // Retorna o histórico completo
+  } catch (error) {
+    console.error('Erro ao buscar histórico:', error);
+    res.status(500).send('Erro ao buscar histórico');
+  }
+});
 
 //--------------------CHAT IA---------------------//
 

@@ -64,21 +64,43 @@ window.onload = async function() {
     await carregarHistorico(userId);  // Carregar histórico de mensagens
 };
 
-// Função para enviar a mensagem e obter a resposta do AI
-async function enviarMensagem(userInput, userId) {
-    try {
-        // Enviar a mensagem do usuário para o backend e obter resposta da IA
-        const response = await axios.post(`${API_BASE_URL}/chat`, { message: userInput, userId: userId });
-        const aiMessage = response.data.response;
+async function enviarMensagem(userInput) {
+  // Buscar o userId no banco, por exemplo, com base no email
+  const userId = await buscarUserIdPorEmail('usuario@exemplo.com'); // Exemplo de consulta ao backend para obter o userId
 
-        // Exibir a mensagem do usuário e a resposta da IA
-        const userMessageDiv = document.createElement('div');
-        userMessageDiv.textContent = `Você: ${userInput}`;
-        outputArea1.appendChild(userMessageDiv);
+  if (!userId) {
+    console.error('ID do usuário não encontrado.');
+    return;
+  }
 
-        const aiMessageDiv = document.createElement('div');
-        aiMessageDiv.textContent = `Chef de Cozinha AI: ${aiMessage}`;
-        outputArea2.appendChild(aiMessageDiv);
+  try {
+    const response = await axios.post('https://chatia-completo.onrender.com/api/db_chatChef_historico', {
+      userId: userId,  // Enviar o ID do usuário
+      userMessage: userInput,  // Mensagem do usuário
+      aiMessage: 'Resposta simulada da IA'  // Aqui você pode passar a resposta da IA
+    });
+
+    console.log('Mensagem enviada e histórico salvo:', response.data);
+  } catch (error) {
+    console.error('Erro ao enviar a mensagem:', error);
+  }
+}
+
+// Função fictícia para buscar o userId por email
+async function buscarUserIdPorEmail(email) {
+  try {
+    const response = await axios.get(`https://chatia-completo.onrender.com/api/db_chatChef_historico/${email}`);
+    if (response.data && response.data.userId) {
+      return response.data.userId;
+    } else {
+      console.error('Usuário não encontrado');
+      return null;
+    }
+  } catch (error) {
+    console.error('Erro ao buscar userId:', error);
+    return null;
+  }
+}
 
         // Salvar o histórico no banco de dados
         await salvarHistorico(userId, userInput, aiMessage);
