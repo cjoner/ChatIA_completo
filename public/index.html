@@ -24,12 +24,15 @@
         // Defina a URL base para o backend
         const API_BASE_URL = 'https://chatia-completo.onrender.com';
 
+        // Variável para controlar o estado de visibilidade do histórico
+        let isHistoricoVisible = false;
+
         // Função para salvar o histórico no MongoDB
         async function salvarHistorico(userId, userMessage, aiMessage) {
             const data = { userId, userMessage, aiMessage };
 
             try {
-                const response = await axios.post(`${API_BASE_URL}/api/db_chatChef_historico`, data);
+                const response = await axios.post(${API_BASE_URL}/api/db_chatChef_historico, data);
                 console.log('Histórico salvo:', response.data);
             } catch (error) {
                 console.error('Erro ao salvar histórico:', error);
@@ -37,63 +40,61 @@
         }
 
         // Função para carregar o histórico do MongoDB
-        async function carregarHistorico(userId) {
-            try {
-                const response = await axios.get(`${API_BASE_URL}/api/db_chatChef_historico/${userId}`);
-                const historico = response.data;
+async function carregarHistorico(userId) {
+    try {
+        const response = await axios.get(${API_BASE_URL}/api/db_chatChef_historico/${userId});
+        const historico = response.data;
 
-                if (historico && historico.messages) {
-                    historico.messages.forEach(msg => {
-                        const outputArea = msg.sender === 'user' ? document.getElementById('outputArea1') : document.getElementById('outputArea2');
-                        const messageDiv = document.createElement('div');
-                        messageDiv.textContent = `${msg.sender === 'user' ? 'Você' : 'Chef de Cozinha AI'}: ${msg.text}`;
-                        outputArea.appendChild(messageDiv);
-                    });
-                }
-            } catch (error) {
-                console.error('Erro ao carregar histórico:', error);
-            }
+        if (historico && historico.messages) {
+            historico.messages.forEach(msg => {
+                const outputArea = msg.sender === 'user' ? outputArea1 : outputArea2;
+                const messageDiv = document.createElement('div');
+                messageDiv.textContent = ${msg.sender === 'user' ? 'Você' : 'Chef de Cozinha AI'}: ${msg.text};
+                outputArea.appendChild(messageDiv);
+            });
         }
+    } catch (error) {
+        console.error('Erro ao carregar histórico:', error);
+    }
+}
 
-        // Ao carregar a página, carregue o histórico de um usuário
-        window.onload = async function () {
-            const userId = "user123";  // Defina um ID de usuário único
-            await carregarHistorico(userId);  // Carregar histórico de mensagens
-        };
+// Ao carregar a página, carregue o histórico de um usuário
+window.onload = async function() {
+    const userId = "user123";  // Defina um ID de usuário único
+    await carregarHistorico(userId);  // Carregar histórico de mensagens
+};
 
-        // Função para enviar a mensagem e obter a resposta do AI
-        async function enviarMensagem(userInput) {
-            const userId = "user123";  // Defina um ID de usuário único para esta sessão (ou pode ser baseado no email)
+// Função para enviar a mensagem e obter a resposta do AI
+async function enviarMensagem(userInput, userId) {
+    try {
+        // Enviar a mensagem do usuário para o backend e obter resposta da IA
+        const response = await axios.post(${API_BASE_URL}/chat, { message: userInput, userId: userId });
+        const aiMessage = response.data.response;
 
-            try {
-                // Enviar a mensagem do usuário para o backend e obter resposta da IA
-                const response = await axios.post(`${API_BASE_URL}/chat`, { message: userInput, userId: userId });
-                const aiMessage = response.data.response;
+        // Exibir a mensagem do usuário e a resposta da IA
+        const userMessageDiv = document.createElement('div');
+        userMessageDiv.textContent = Você: ${userInput};
+        outputArea1.appendChild(userMessageDiv);
 
-                // Exibir a mensagem do usuário e a resposta da IA
-                const userMessageDiv = document.createElement('div');
-                userMessageDiv.textContent = `Você: ${userInput}`;
-                document.getElementById('outputArea1').appendChild(userMessageDiv);
+        const aiMessageDiv = document.createElement('div');
+        aiMessageDiv.textContent = Chef de Cozinha AI: ${aiMessage};
+        outputArea2.appendChild(aiMessageDiv);
 
-                const aiMessageDiv = document.createElement('div');
-                aiMessageDiv.textContent = `Chef de Cozinha AI: ${aiMessage}`;
-                document.getElementById('outputArea2').appendChild(aiMessageDiv);
-
-                // Salvar o histórico no banco de dados
-                await salvarHistorico(userId, userInput, aiMessage);
-            } catch (error) {
-                console.error('Erro ao processar a mensagem:', error);
-                const errorDiv = document.createElement('div');
-                errorDiv.textContent = 'Erro ao obter resposta do Chef de Cozinha AI.';
-                document.getElementById('outputArea2').appendChild(errorDiv);
-            }
-        }
+        // Salvar o histórico no banco de dados
+        await salvarHistorico(userId, userInput, aiMessage);
+    } catch (error) {
+        console.error('Erro ao processar a mensagem:', error);
+        const errorDiv = document.createElement('div');
+        errorDiv.textContent = 'Erro ao obter resposta do Chef de Cozinha AI.';
+        outputArea2.appendChild(errorDiv);
+    }
+}
 
         // Evento para enviar a mensagem
         document.getElementById('sendMessage').addEventListener('click', async function () {
             const userInput = document.getElementById('userInput').value;
             if (userInput) {
-                await enviarMensagem(userInput);
+                await enviarMensagem(userInput, userId);
                 document.getElementById('userInput').value = ''; // Limpar input após envio
             }
         });
