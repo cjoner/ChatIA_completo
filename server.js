@@ -1,76 +1,93 @@
+
 const express = require('express');
-const mongoose = require('mongoose');
+const cors = require('cors'); // Importar o pacote cors
+
 const app = express();
 
-const Historico = require('./models/Historico'); // Seu modelo de Histórico de chat
+// Configurar o middleware CORS
+const corsOptions = {
+    origin: ['https://chat-ia-chef.netlify.app','https://chatia-completo.onrender.com/'], // Permitir apenas este domínio
+    methods: ['GET', 'POST'], // Métodos permitidos
+    allowedHeaders: ['Content-Type'], // Cabeçalhos permitidos
+};
 
-app.use(express.json());
+app.use(cors(corsOptions)); // Usar o middleware CORS com as opções
+
+
+// Resto do código do servidor...
+
+
+//-------------------CONEXAO MONGODB-------------------------//
+
+require('dotenv').config();
+
+const mongoose = require('mongoose');
+const axios = require('axios'); // Adicionando axios para a requisição do IP público
+const Chat = require('./models/Chat');
+
+
+app.use(express.json()); // Para lidar com dados JSON no corpo das requisições
 
 // Conectando ao MongoDB
-mongoose.connect('mongodb+srv://usuario:senha@cluster.mongodb.net/db_chatChef', {
-  useNewUrlParser: true,
-  useUnifiedTopology: true,
+mongoose.connect('mongodb+srv://clarachjoner2007:alex156600@chat-chef-ia.ficqopw.mongodb.net/db_chatChef?retryWrites=true&w=majority&appName=Chat-chef-ia', {
+    useNewUrlParser: true,
+    useUnifiedTopology: true,
 })
 .then(() => console.log('Conectado ao MongoDB'))
 .catch(err => console.error('Erro ao conectar ao MongoDB', err));
 
-// Definindo o schema de Histórico de Chat
+// Definindo o schema do histórico
 const historicoSchema = new mongoose.Schema({
-  userId: mongoose.Schema.Types.ObjectId, // Usando o tipo ObjectId do MongoDB
-  messages: [{
-    sender: String,
-    text: String,
+    userId: String,
+    message: String,
+    localizacao: {
+        cidade: String,
+        estado: String,
+        pais: String
+    },
     timestamp: { type: Date, default: Date.now }
-  }]
 });
 
 const Historico = mongoose.model('Historico', historicoSchema);
 
-// Endpoint para registrar histórico
+// Definindo o schema para logs de IP e data
+const logSchema = new mongoose.Schema({
+    userId: String,
+    ip: String,
+    timestamp: { type: Date, default: Date.now }
+});
+
+const Log = mongoose.model('Log', logSchema);
+
+// Endpoint para registrar o histórico e o IP público, agora com cidade, estado e país
 app.post('/api/db_chatChef_historico', async (req, res) => {
-  const { userMessage, aiMessage } = req.body;
+    const { message, cidade, estado, pais } = req.body; // Receber mais informações do cliente
 
-  try {
-    // Buscando o histórico do usuário baseado em um critério, por exemplo, email ou nome
-    let user = await Historico.findOne({ 'messages.sender': 'user' });
+    try {
+        // Obter o IP público usando a API do Ipfy
+        const response = await axios.get('https://api.ipify.org?format=json'); // Requisição para obter o IP
+        const userIp = response.data.ip; // Extrair o IP da resposta
 
-    if (!user) {
-      // Se não encontrar, significa que o usuário não tem histórico. Retorne um erro ou crie um novo usuário.
-      return res.status(404).send('Usuário não encontrado');
+        // Verificar se o IP foi corretamente capturado
+        console.log('IP público capturado:', userIp);
+
+        // Criar um novo documento de histórico com todas as informações
+        const novoHistorico = new Historico({
+            userId: userIp,
+            message,
+            localizacao: { cidade, estado, pais } // Adicionando cidade, estado e país ao registro
+        });
+
+        // Salvar no banco de dados MongoDB
+        await novoHistorico.save();
+
+        res.status(201).send('Histórico com geolocalização salvo com sucesso');
+    } catch (error) {
+        console.error('Erro ao salvar histórico:', error);
+        res.status(500).send('Erro ao salvar histórico');
     }
-
-    // Agora você tem o userId, vamos pegar o ID do usuário do histórico encontrado
-    const userId = user.userId;
-
-    // Atualizar o histórico do usuário com a nova mensagem
-    user.messages.push({ sender: 'user', text: userMessage });
-    user.messages.push({ sender: 'ai', text: aiMessage });
-
-    await user.save();
-    res.status(200).send('Histórico atualizado com sucesso');
-  } catch (error) {
-    console.error('Erro ao salvar histórico:', error);
-    res.status(500).send('Erro ao salvar histórico');
-  }
 });
 
-// Rota para obter o histórico de um usuário
-app.get('/api/db_chatChef_historico/:userId', async (req, res) => {
-  const { userId } = req.params;
-
-  try {
-    const historico = await Historico.findOne({ userId: mongoose.Types.ObjectId(userId) });
-
-    if (!historico) {
-      return res.status(404).send('Histórico não encontrado');
-    }
-
-    res.json(historico);  // Retorna o histórico completo
-  } catch (error) {
-    console.error('Erro ao buscar histórico:', error);
-    res.status(500).send('Erro ao buscar histórico');
-  }
-});
 
 //--------------------CHAT IA---------------------//
 
@@ -97,50 +114,28 @@ const generationConfig = {
 app.post('/chat', async (req, res) => {
     try {
         const userMessage = req.body.message;
-        const userId = req.body.userId;  // Adicionando o ID do usuário para rastrear o histórico
-        console.log('Mensagem recebida do usuário:', userMessage);
+        console.log('Received message from user:', userMessage);
 
-        // Recuperar o histórico de conversas anteriores do usuário
-        const historico = await Historico.findOne({ userId });
-
-        let history = [];
-        if (historico) {
-            // Caso haja histórico, carregar as mensagens anteriores
-            history = historico.messages.map(msg => ({
-                sender: msg.sender,
-                text: msg.text
-            }));
-        }
-
-        // Adicionar a nova mensagem ao histórico
-        history.push({ sender: 'user', text: userMessage });
-
-        // Iniciar a sessão de chat com o histórico completo
+        // Iniciar uma nova sessão de chat
         const chatSession = model.startChat({
             generationConfig,
-            history: history,  // Passando o histórico completo para a IA
+            history: [],
         });
 
-        // Enviar a mensagem do usuário para a IA e obter a resposta
         const result = await chatSession.sendMessage(userMessage);
         const aiResponse = result.response.text();
-        console.log('Resposta da IA:', aiResponse);
+        console.log('AI response:', aiResponse);
 
-        // Salvar a nova mensagem da IA no banco de dados
-        await Historico.findOneAndUpdate(
-            { userId },
-            { $push: { messages: [{ sender: 'ai', text: aiResponse }] } },
-            { upsert: true, new: true }
-        );
+        // Salvar o histórico de chat no banco de dados
+        const chat = new Chat({ userMessage, aiResponse });
+        await chat.save();
 
-        // Enviar a resposta da IA de volta para o frontend
         res.json({ response: aiResponse });
     } catch (error) {
-        console.error('Erro ao processar o chat:', error);
-        res.status(500).send('Erro interno do servidor');
+        console.error('Error processing chat:', error);
+        res.status(500).send('Internal Server Error');
     }
 });
-
 
 // Rota básica para o caminho root
 app.get('/', (req, res) => {
@@ -149,5 +144,5 @@ app.get('/', (req, res) => {
 
 const port = process.env.PORT || 8000;
 app.listen(port, () => {
-    console.log('Servidor rodando na porta ${port}');
+    console.log(`Servidor rodando na porta ${port}`);
 });
