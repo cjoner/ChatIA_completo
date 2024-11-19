@@ -26,40 +26,36 @@
     
         // Função para salvar o histórico no MongoDB
         async function salvarHistorico(userId, userMessage, aiMessage) {
-            const data = { userId, userMessage, aiMessage };
-    
-            try {
-                const response = await fetch(`${API_BASE_URL}/api/db_chatChef_historico`, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify(data),
-                });
-    
-                const result = await response.text();
-                console.log('Histórico salvo:', result);
-            } catch (error) {
-                console.error('Erro ao salvar histórico:', error);
-            }
-        }
+    const data = { userId, userMessage, aiMessage };
+
+    try {
+        const response = await axios.post(`${API_BASE_URL}/api/db_chatChef_historico`, data);
+        console.log('Histórico salvo:', response.data);
+    } catch (error) {
+        console.error('Erro ao salvar histórico:', error);
+    }
+}
+
     
         // Função para carregar o histórico do MongoDB
         async function carregarHistorico(userId) {
-            try {
-                const response = await axios.get(`${API_BASE_URL}/api/db_chatChef_historico/${userId}`);
-                const historico = response.data;
-    
-                historico.messages.forEach(msg => {
-                    const outputArea = msg.sender === 'user' ? outputArea1 : outputArea2;
-                    const messageDiv = document.createElement('div');
-                    messageDiv.textContent = `${msg.sender === 'user' ? 'Você' : 'Chef de Cozinha AI'}: ${msg.text}`;
-                    outputArea.appendChild(messageDiv);
-                });
-            } catch (error) {
-                console.error('Erro ao carregar histórico:', error);
-            }
+    try {
+        const response = await axios.get(`${API_BASE_URL}/api/db_chatChef_historico/${userId}`);
+        const historico = response.data;
+
+        if (historico && historico.messages) {
+            historico.messages.forEach(msg => {
+                const outputArea = msg.sender === 'user' ? outputArea1 : outputArea2;
+                const messageDiv = document.createElement('div');
+                messageDiv.textContent = `${msg.sender === 'user' ? 'Você' : 'Chef de Cozinha AI'}: ${msg.text}`;
+                outputArea.appendChild(messageDiv);
+            });
         }
+    } catch (error) {
+        console.error('Erro ao carregar histórico:', error);
+    }
+}
+
     
         // Função para enviar a mensagem e obter a resposta do AI
         async function enviarMensagem(userInput, userId) {

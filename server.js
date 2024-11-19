@@ -52,34 +52,26 @@ const Historico = mongoose.model('Historico', historicoSchema);
 
 // Endpoint para registrar o histórico e o IP público
 app.post('/api/db_chatChef_historico', async (req, res) => {
-    const { message } = req.body; // Agora não pegamos o userId do corpo da requisição
+    const { userId, userMessage, aiMessage } = req.body;
 
     try {
-        // Obter o IP público usando a API do Ipfy
-        const response = await axios.get('https://api.ipify.org?format=json');
-        const userIp = response.data.ip; // IP público da máquina
+        const historico = await Historico.findOneAndUpdate(
+            { userId },
+            { $push: { messages: [
+                { sender: 'user', text: userMessage },
+                { sender: 'ai', text: aiMessage },
+            ] }},
+            { upsert: true, new: true }
+        );
 
-        console.log('Captured User Public IP:', userIp);
-
-        // Salvar o histórico de mensagens com o IP no campo userId
-        const novoHistorico = new Historico({ userId: userIp, message });
-
-        console.log('Saving new history record:', novoHistorico);
-
-        await novoHistorico.save();
-
-        const novoLog = new Log({ userId: userIp, ip: userIp });
-
-        console.log('Saving new log record:', novoLog);
-
-        await novoLog.save();
-
-        res.status(201).send('Histórico e log salvos com sucesso');
+        console.log('Histórico atualizado:', historico);
+        res.status(201).send('Histórico atualizado com sucesso');
     } catch (error) {
-        console.error('Erro ao salvar histórico e log:', error);
-        res.status(500).send('Erro ao salvar histórico e log');
+        console.error('Erro ao salvar histórico:', error);
+        res.status(500).send('Erro ao salvar histórico');
     }
 });
+
 
 // --- Adicione o novo endpoint abaixo deste bloco ---
 
@@ -88,17 +80,22 @@ app.get('/api/db_chatChef_historico/:userId', async (req, res) => {
     const { userId } = req.params;
 
     try {
+        console.log('Requisição para obter histórico do userId:', userId);
         const historico = await Historico.findOne({ userId });
+
         if (!historico) {
+            console.log('Histórico não encontrado para o userId:', userId);
             return res.status(404).send('Histórico não encontrado');
         }
 
+        console.log('Histórico encontrado:', historico);
         res.json(historico);
     } catch (error) {
         console.error('Erro ao buscar histórico:', error);
         res.status(500).send('Erro ao buscar histórico');
     }
 });
+
 
   
 
