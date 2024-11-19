@@ -21,12 +21,15 @@
     </div>
 
     <script>
+        // Defina a URL base para o backend
+        const API_BASE_URL = 'https://chatia-completo.onrender.com';
+    
         // Função para salvar o histórico no MongoDB
         async function salvarHistorico(userId, userMessage, aiMessage) {
             const data = { userId, userMessage, aiMessage };
     
             try {
-                const response = await fetch('/api/db_chatChef_historico', {
+                const response = await fetch(`${API_BASE_URL}/api/db_chatChef_historico`, {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
@@ -44,7 +47,7 @@
         // Função para carregar o histórico do MongoDB
         async function carregarHistorico(userId) {
             try {
-                const response = await axios.get(`/api/db_chatChef_historico/${userId}`);
+                const response = await axios.get(`${API_BASE_URL}/api/db_chatChef_historico/${userId}`);
                 const historico = response.data;
     
                 historico.messages.forEach(msg => {
@@ -61,7 +64,7 @@
         // Função para enviar a mensagem e obter a resposta do AI
         async function enviarMensagem(userInput, userId) {
             try {
-                const response = await axios.post('https://mongodb-usuario-chatia.onrender.com/chat', { message: userInput });
+                const response = await axios.post(`${API_BASE_URL}/chat`, { message: userInput });
                 const aiMessage = response.data.response;
     
                 // Exibir a mensagem do usuário
@@ -98,6 +101,7 @@
             });
         });
     </script>
+    
     
     <style>
         body {

@@ -99,6 +99,7 @@ app.get('/api/db_chatChef_historico/:userId', async (req, res) => {
         res.status(500).send('Erro ao buscar histórico');
     }
 });
+
   
 
 
