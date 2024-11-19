@@ -32,7 +32,7 @@
             const data = { userId, userMessage, aiMessage };
 
             try {
-                const response = await axios.post(${API_BASE_URL}/api/db_chatChef_historico, data);
+                const response = await axios.post(`${API_BASE_URL}/api/db_chatChef_historico`, data);
                 console.log('Histórico salvo:', response.data);
             } catch (error) {
                 console.error('Erro ao salvar histórico:', error);
@@ -42,14 +42,14 @@
         // Função para carregar o histórico do MongoDB
 async function carregarHistorico(userId) {
     try {
-        const response = await axios.get(${API_BASE_URL}/api/db_chatChef_historico/${userId});
+        const response = await axios.get('${API_BASE_URL}/api/db_chatChef_historico/${userId}');
         const historico = response.data;
 
         if (historico && historico.messages) {
             historico.messages.forEach(msg => {
                 const outputArea = msg.sender === 'user' ? outputArea1 : outputArea2;
                 const messageDiv = document.createElement('div');
-                messageDiv.textContent = ${msg.sender === 'user' ? 'Você' : 'Chef de Cozinha AI'}: ${msg.text};
+                        messageDiv.textContent = `${msg.sender === 'user' ? 'Você' : 'Chef de Cozinha AI'}: ${msg.text}`;
                 outputArea.appendChild(messageDiv);
             });
         }
@@ -68,16 +68,16 @@ window.onload = async function() {
 async function enviarMensagem(userInput, userId) {
     try {
         // Enviar a mensagem do usuário para o backend e obter resposta da IA
-        const response = await axios.post(${API_BASE_URL}/chat, { message: userInput, userId: userId });
+        const response = await axios.get(`${API_BASE_URL}/api/db_chatChef_historico/${userId}`);
         const aiMessage = response.data.response;
 
         // Exibir a mensagem do usuário e a resposta da IA
         const userMessageDiv = document.createElement('div');
-        userMessageDiv.textContent = Você: ${userInput};
+        userMessageDiv.textContent = 'Você: ${userInput}';
         outputArea1.appendChild(userMessageDiv);
 
         const aiMessageDiv = document.createElement('div');
-        aiMessageDiv.textContent = Chef de Cozinha AI: ${aiMessage};
+        aiMessageDiv.textContent = 'Chef de Cozinha AI: ${aiMessage}';
         outputArea2.appendChild(aiMessageDiv);
 
         // Salvar o histórico no banco de dados
