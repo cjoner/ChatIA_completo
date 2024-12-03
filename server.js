@@ -1,16 +1,16 @@
 require('dotenv').config(); // Carregar as variáveis de ambiente
 
 const express = require('express');
-const cors = require('cors');
 const mongoose = require('mongoose');
 const path = require('path');
 
 const app = express();
 
-// Permitir apenas o domínio específico
+const cors = require('cors');
+
 app.use(cors({
-    origin: 'https://chatia-completo.onrender.com',  // Permite apenas esse domínio
-    methods: ['GET', 'POST'],  // Métodos permitidos
+    origin: ['https://chatia-completo.onrender.com'], // Adicione o domínio do frontend
+    methods: ['GET', 'POST'],  // Métodos HTTP permitidos
     allowedHeaders: ['Content-Type']  // Cabeçalhos permitidos
 }));
 
@@ -67,8 +67,9 @@ app.post('/api/db_chatChef_historico', async (req, res) => {
 // Endpoint para obter o histórico de um usuário
 app.get('/api/db_chatChef_historico/:userId', async (req, res) => {
     const { userId } = req.params;
+    console.log(`Buscando histórico para o usuário: ${userId}`); // Log do userId
+
     try {
-        console.log(`Buscando histórico para o usuário: ${userId}`);
         const historico = await Historico.findOne({ userId });
         if (!historico) {
             console.log(`Histórico não encontrado para o usuário: ${userId}`);
@@ -76,7 +77,7 @@ app.get('/api/db_chatChef_historico/:userId', async (req, res) => {
         }
         res.json(historico);
     } catch (error) {
-        console.error('Erro ao buscar histórico:', error);
+        console.error('Erro ao buscar histórico:', error); // Log de erro
         res.status(500).send('Erro ao buscar histórico');
     }
 });
