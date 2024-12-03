@@ -9,22 +9,15 @@ const app = express();
 
 // Permitir apenas o domínio específico
 app.use(cors({
-    origin: 'https://chatia-completo.onrender.com', // Permite apenas esse domínio
-    methods: ['GET', 'POST'], // Métodos permitidos
-    allowedHeaders: ['Content-Type'] // Cabeçalhos permitidos
+    origin: 'https://chatia-completo.onrender.com',  // Permite apenas esse domínio
+    methods: ['GET', 'POST'],  // Métodos permitidos
+    allowedHeaders: ['Content-Type']  // Cabeçalhos permitidos
 }));
-// Rota para testar a API
-app.post('/chat', (req, res) => {
-    res.json({ response: 'Resposta do Chef de Cozinha' });
-});
 
-const port = 8000;
-app.listen(port, () => {
-    console.log(`Servidor rodando na porta ${port}`);
-});
+// Middleware para arquivos estáticos
+app.use(express.static(path.join(__dirname, 'public')));
 
-
-// Conectando ao MongoDB usando a variável de ambiente
+// Configuração do MongoDB
 mongoose.connect(process.env.MONGODB_URI, {
     useNewUrlParser: true,
     useUnifiedTopology: true,
@@ -32,19 +25,11 @@ mongoose.connect(process.env.MONGODB_URI, {
 .then(() => console.log('Conectado ao MongoDB'))
 .catch(err => console.error('Erro ao conectar ao MongoDB', err));
 
-// Middleware para arquivos estáticos
-app.use(express.static(path.join(__dirname, 'public')));
-
-// Rota para servir a página HTML
-app.get('/', (req, res) => {
-    res.sendFile(path.join(__dirname, 'public', 'index.html'));
-});
-
 // Definindo o schema do histórico
 const historicoSchema = new mongoose.Schema({
     userId: String,
     messages: [{
-        sender: String,
+        sender: String,  // "user" ou "ai"
         text: String,
         timestamp: { type: Date, default: Date.now },
     }],
@@ -80,20 +65,22 @@ app.post('/api/db_chatChef_historico', async (req, res) => {
 // Endpoint para obter o histórico de um usuário
 app.get('/api/db_chatChef_historico/:userId', async (req, res) => {
     const { userId } = req.params;
-
     try {
         console.log(`Buscando histórico para o usuário: ${userId}`);
         const historico = await Historico.findOne({ userId });
         if (!historico) {
+            console.log(`Histórico não encontrado para o usuário: ${userId}`);
             return res.status(404).send('Histórico não encontrado');
         }
         res.json(historico);
     } catch (error) {
-        console.error('Erro ao buscar histórico:', error);  // Log do erro
+        console.error('Erro ao buscar histórico:', error);
         res.status(500).send('Erro ao buscar histórico');
     }
 });
 
-
-
-
+// Configuração da porta
+const port = process.env.PORT || 8000;
+app.listen(port, () => {
+    console.log(`Servidor rodando na porta ${port}`);
+});
