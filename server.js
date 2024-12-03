@@ -1,34 +1,39 @@
+require('dotenv').config(); // Carregar as variáveis de ambiente
+
 const express = require('express');
 const cors = require('cors');
 const mongoose = require('mongoose');
-const axios = require('axios'); 
+const path = require('path');
 
 const app = express();
 
 // Middleware CORS
-const corsOptions = {
-    origin: ['https://chat-ia-chef.netlify.app', 'https://mongodb-usuario-chatia.onrender.com'], 
-    methods: ['GET', 'POST'], 
-    allowedHeaders: ['Content-Type'], 
-};
-app.use(cors(corsOptions)); 
+app.use(cors());
 
-// Conectando ao MongoDB
-mongoose.connect('mongodb+srv://clarachjoner2007:alex156600@chat-chef-ia.ficqopw.mongodb.net/db_chatChef?retryWrites=true&w=majority&appName=Chat-chef-ia', {
+// Conectando ao MongoDB usando a variável de ambiente
+mongoose.connect(process.env.MONGODB_URI, {
     useNewUrlParser: true,
     useUnifiedTopology: true,
 })
 .then(() => console.log('Conectado ao MongoDB'))
 .catch(err => console.error('Erro ao conectar ao MongoDB', err));
 
+// Middleware para arquivos estáticos
+app.use(express.static(path.join(__dirname, 'public')));
+
+// Rota para servir a página HTML
+app.get('/', (req, res) => {
+    res.sendFile(path.join(__dirname, 'public', 'index.html'));
+});
+
 // Definindo o schema do histórico
 const historicoSchema = new mongoose.Schema({
     userId: String,
     messages: [{
-        sender: String, // "user" ou "ai"
+        sender: String,
         text: String,
-        timestamp: { type: Date, default: Date.now }
-    }]
+        timestamp: { type: Date, default: Date.now },
+    }],
 });
 
 const Historico = mongoose.model('Historico', historicoSchema);
@@ -42,7 +47,7 @@ app.post('/api/db_chatChef_historico', async (req, res) => {
         if (!historico) {
             const novoHistorico = new Historico({
                 userId,
-                messages: [{ sender: 'user', text: userMessage }, { sender: 'ai', text: aiMessage }]
+                messages: [{ sender: 'user', text: userMessage }, { sender: 'ai', text: aiMessage }],
             });
             await novoHistorico.save();
         } else {
@@ -74,11 +79,7 @@ app.get('/api/db_chatChef_historico/:userId', async (req, res) => {
     }
 });
 
-app.get('/', (req, res) => {
-    res.send('API do Chat de Cozinha está rodando!');
-});
-
-
+// Configuração da porta
 const port = process.env.PORT || 8000;
 app.listen(port, () => {
     console.log(`Servidor rodando na porta ${port}`);

@@ -1,13 +1,11 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
-
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Chat com o Chef de Cozinha AI</title>
     <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
 </head>
-
 <body>
     <h1>Chat com o Chef de Cozinha AI</h1>
     <div id="blocoFora">
@@ -89,11 +87,12 @@
             }
         }
 
-        // Configurar eventos
+        // Configurar eventos para o botão de envio
         document.addEventListener('DOMContentLoaded', () => {
             const userId = 'user123'; // Substituir por ID real ou gerado dinamicamente
             carregarHistorico(userId); // Carregar histórico ao carregar a página
 
+            // Evento de clique no botão de envio
             document.getElementById('sendMessage').addEventListener('click', async function () {
                 const userInput = document.getElementById('userInput').value;
                 if (userInput) {
@@ -174,5 +173,4 @@
         }
     </style>
 </body>
-
 </html>
