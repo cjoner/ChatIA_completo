@@ -7,8 +7,22 @@ const path = require('path');
 
 const app = express();
 
-// Middleware CORS
-app.use(cors());
+// Permitir apenas o domínio específico
+app.use(cors({
+    origin: 'https://chatia-completo.onrender.com', // Permite apenas esse domínio
+    methods: ['GET', 'POST'], // Métodos permitidos
+    allowedHeaders: ['Content-Type'] // Cabeçalhos permitidos
+}));
+// Rota para testar a API
+app.post('/chat', (req, res) => {
+    res.json({ response: 'Resposta do Chef de Cozinha' });
+});
+
+const port = 8000;
+app.listen(port, () => {
+    console.log(`Servidor rodando na porta ${port}`);
+});
+
 
 // Conectando ao MongoDB usando a variável de ambiente
 mongoose.connect(process.env.MONGODB_URI, {
@@ -68,32 +82,18 @@ app.get('/api/db_chatChef_historico/:userId', async (req, res) => {
     const { userId } = req.params;
 
     try {
+        console.log(`Buscando histórico para o usuário: ${userId}`);
         const historico = await Historico.findOne({ userId });
         if (!historico) {
             return res.status(404).send('Histórico não encontrado');
         }
         res.json(historico);
     } catch (error) {
-        console.error('Erro ao buscar histórico:', error);
+        console.error('Erro ao buscar histórico:', error);  // Log do erro
         res.status(500).send('Erro ao buscar histórico');
     }
 });
 
 
 
-// Permitir apenas o domínio específico
-// Permitir apenas o domínio específico
-app.use(cors({
-    origin: 'https://chatia-completo.onrender.com', // Permite apenas esse domínio
-    methods: ['GET', 'POST'], // Métodos permitidos
-    allowedHeaders: ['Content-Type'] // Cabeçalhos permitidos
-}));
-// Rota para testar a API
-app.post('/chat', (req, res) => {
-    res.json({ response: 'Resposta do Chef de Cozinha' });
-});
 
-const port = 8000;
-app.listen(port, () => {
-    console.log(`Servidor rodando na porta ${port}`);
-});

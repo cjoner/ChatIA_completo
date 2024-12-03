@@ -39,54 +39,53 @@
             }
         }
 
-        // Função para carregar o histórico do MongoDB
-        async function carregarHistorico(userId) {
-            try {
-                const response = await axios.get(`/api/db_chatChef_historico/${userId}`);
-                const historico = response.data;
-
-                if (!historico.messages || historico.messages.length === 0) {
-                    console.log('Sem histórico para carregar.');
-                    return;
-                }
-
-                historico.messages.forEach((msg) => {
-                    const outputArea = msg.sender === 'user' ? document.getElementById('outputArea1') : document.getElementById('outputArea2');
-                    const messageDiv = document.createElement('div');
-                    messageDiv.textContent = `${msg.sender === 'user' ? 'Você' : 'Chef de Cozinha AI'}: ${msg.text}`;
-                    outputArea.appendChild(messageDiv);
-                });
-            } catch (error) {
-                console.error('Erro ao carregar histórico:', error);
-            }
-        }
 
         // Função para enviar a mensagem e obter a resposta do AI
         async function enviarMensagem(userInput, userId) {
-            try {
-                const response = await axios.post('https://mongodb-usuario-chatia.onrender.com/chat', { message: userInput });
-                const aiMessage = response.data.response;
+    try {
+        const response = await axios.post('https://mongodb-usuario-chatia.onrender.com/chat', { message: userInput });
+        const aiMessage = response.data.response;
 
-                // Exibir a mensagem do usuário
-                const userMessageDiv = document.createElement('div');
-                userMessageDiv.textContent = `Você: ${userInput}`;
-                document.getElementById('outputArea1').appendChild(userMessageDiv);
+        // Exibir a mensagem do usuário
+        const userMessageDiv = document.createElement('div');
+        userMessageDiv.textContent = `Você: ${userInput}`;
+        document.getElementById('outputArea1').appendChild(userMessageDiv);
 
-                // Exibir a resposta da IA
-                const aiMessageDiv = document.createElement('div');
-                aiMessageDiv.textContent = `Chef de Cozinha AI: ${aiMessage}`;
-                document.getElementById('outputArea2').appendChild(aiMessageDiv);
+        // Exibir a resposta da IA
+        const aiMessageDiv = document.createElement('div');
+        aiMessageDiv.textContent = `Chef de Cozinha AI: ${aiMessage}`;
+        document.getElementById('outputArea2').appendChild(aiMessageDiv);
 
-                // Salvar no banco de dados
-                await salvarHistorico(userId, userInput, aiMessage);
-            } catch (error) {
-                console.error('Erro ao processar mensagem:', error);
-                const errorDiv = document.createElement('div');
-                errorDiv.textContent = 'Erro ao obter resposta do Chef de Cozinha AI.';
-                document.getElementById('outputArea2').appendChild(errorDiv);
-            }
+        // Salvar no banco de dados
+        await salvarHistorico(userId, userInput, aiMessage);
+    } catch (error) {
+        console.error('Erro ao processar mensagem:', error);
+        const errorDiv = document.createElement('div');
+        errorDiv.textContent = 'Erro ao obter resposta do Chef de Cozinha AI.';
+        document.getElementById('outputArea2').appendChild(errorDiv);
+    }
+}
+
+async function carregarHistorico(userId) {
+    try {
+        const response = await axios.get(`/api/db_chatChef_historico/${userId}`);
+        const historico = response.data;
+
+        if (!historico.messages || historico.messages.length === 0) {
+            console.log('Sem histórico para carregar.');
+            return;
         }
 
+        historico.messages.forEach((msg) => {
+            const outputArea = msg.sender === 'user' ? document.getElementById('outputArea1') : document.getElementById('outputArea2');
+            const messageDiv = document.createElement('div');
+            messageDiv.textContent = `${msg.sender === 'user' ? 'Você' : 'Chef de Cozinha AI'}: ${msg.text}`;
+            outputArea.appendChild(messageDiv);
+        });
+    } catch (error) {
+        console.error('Erro ao carregar histórico:', error);
+    }
+}
         // Configurar eventos para o botão de envio
         document.addEventListener('DOMContentLoaded', () => {
             const userId = 'user123'; // Substituir por ID real ou gerado dinamicamente
