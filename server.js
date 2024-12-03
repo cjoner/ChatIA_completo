@@ -79,8 +79,20 @@ app.get('/api/db_chatChef_historico/:userId', async (req, res) => {
     }
 });
 
-// Configuração da porta
-const port = process.env.PORT || 8000;
+
+// Permitir apenas o domínio específico
+app.use(cors({
+    origin: 'https://chatia-completo.onrender.com', // Permite apenas esse domínio
+    methods: ['GET', 'POST'],  // Permite apenas GET e POST
+    allowedHeaders: ['Content-Type']  // Permite apenas cabeçalhos Content-Type
+}));
+
+// Rota para testar a API
+app.post('/chat', (req, res) => {
+    res.json({ response: 'Resposta do Chef de Cozinha' });
+});
+
+const port = 8000;
 app.listen(port, () => {
     console.log(`Servidor rodando na porta ${port}`);
 });
