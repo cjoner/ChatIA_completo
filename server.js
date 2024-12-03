@@ -39,6 +39,7 @@ const Historico = mongoose.model('Historico', historicoSchema);
 
 // Endpoint para salvar o histórico
 app.post('/api/db_chatChef_historico', async (req, res) => {
+    console.log('Dados recebidos:', req.body); // Log para verificar os dados enviados pelo frontend
     const { userId, userMessage, aiMessage } = req.body;
 
     try {
@@ -61,6 +62,7 @@ app.post('/api/db_chatChef_historico', async (req, res) => {
         res.status(500).send('Erro ao salvar histórico');
     }
 });
+
 
 // Endpoint para obter o histórico de um usuário
 app.get('/api/db_chatChef_historico/:userId', async (req, res) => {
