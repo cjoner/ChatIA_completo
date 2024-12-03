@@ -74,6 +74,9 @@ app.get('/api/db_chatChef_historico/:userId', async (req, res) => {
     }
 });
 
+app.get('/', (req, res) => {
+    res.send('API do Chat de Cozinha está rodando!');
+});
 
 
 const port = process.env.PORT || 8000;
