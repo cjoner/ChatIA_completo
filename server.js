@@ -76,3 +76,8 @@ app.get('/api/db_chatChef_historico/:userId', async (req, res) => {
 
 // Configuração do modelo de Chat
 const chatSchema = new mongoose
+
+const port = process.env.PORT || 8000;
+app.listen(port, () => {
+    console.log(`Servidor rodando na porta ${port}`);
+});
