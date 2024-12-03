@@ -80,13 +80,14 @@ app.get('/api/db_chatChef_historico/:userId', async (req, res) => {
 });
 
 
+
+// Permitir apenas o domínio específico
 // Permitir apenas o domínio específico
 app.use(cors({
     origin: 'https://chatia-completo.onrender.com', // Permite apenas esse domínio
-    methods: ['GET', 'POST'],  // Permite apenas GET e POST
-    allowedHeaders: ['Content-Type']  // Permite apenas cabeçalhos Content-Type
+    methods: ['GET', 'POST'], // Métodos permitidos
+    allowedHeaders: ['Content-Type'] // Cabeçalhos permitidos
 }));
-
 // Rota para testar a API
 app.post('/chat', (req, res) => {
     res.json({ response: 'Resposta do Chef de Cozinha' });
